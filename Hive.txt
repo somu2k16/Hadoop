@@ -1,0 +1,28 @@
+Hive organizes data in three ways:
+? Tables: Hive tables are logical collection of data that is stored in the HDFS or in the local file system and the Meta data of the data that is stored in these tables. HIVE stores the Meta data in the Relational databases. Basically there are two kinds of tables in HIVE. The HIVE managed tables which are created by default when user creates a table. This is how HIVE internally manages the data. Alternately an External table may be used which tells HIVE where the actual data resides outside the warehouse.
+
+? Partitions: Another way HIVE organizes the data is using partition. Partitions are the way tables are divided into small partitions based on columns. This helps the query optimization in HIVE as small partitions are easy to query. Partitions are created at the time of table creation time with the PARTIONED BY clause.
+
+Example:-
+ CREATE TABLE Partition_Table (ts BIGINT, line STRING) PARTITIONED BY (dt STRING, country STRING);
+
+? Buckets: Tables and partitions can be sub divided into Buckets which gives extra structure to the data. This becomes important in terms of optimization for more efficient queries. Buckets are defined by using the CLUSTERED BY clause.
+
+Example:-
+ CREATE TABLE Bucket_Table (id INT, name STRING) CLUSTERED BY (id) INTO 4 BUCKETS; 
+
+
+Data in hive is organized at three levels:
+
+a) Tables:These are similar to tables to traditional database.Data in the table is stored on HDFS. There can be two types of tables:
+
+1) Internal tables:These tables are created from data on the local file system.In this if `you drop the table then its metadata and data on the hdfs gets deleted completely.
+
+2) External tables:These tables are created from data on hdfs.In this if you drop the table then its metadata gets deleted but actual data of the table on hdfs does not gets deleted. 
+
+b) Partition:This is next level of storage of data after tables.Each table can have one or more partition based on the column of table.For example a table T with a date partition column "ds" had files with data for a particular date stored in the <table location>/ds=<date> directory in HDFS.This makes the querying of data easier and less time consuming because if you query data by giving particular condition then it will only look into that particular partition of data not the entire data of the table.
+
+c)Buckets: Data in each partition may in turn be divided into Buckets based on the hash of a column in the table. Each bucket is stored as a file in the partition directory. Bucketing allows the system to efficiently evaluate queries that depend on a sample of data 
+
+Example:-
+ CREATE TABLE Bucket_Table_name (name1 STRING,name2 STRING) CLUSTERED BY (name1) INTO 3 BUCKETS 

@@ -1,0 +1,117 @@
+--List all databases in MySQL
+sqoop-list-databases --connect jdbc:mysql://localhost/ --username hadoop --password hadoop
+
+--List all tables in MySQL
+sqoop-list-tables --connect jdbc:mysql://localhost/hive --username hadoop --P
+--If we pass -P as parameter, we can give the password in the run time so that the password is not hard-coded for security reasons.
+
+--Pass parameter file to Sqoop
+sqoop-list-tables --options-file /root/dvs/sqoop_param 
+
+cat>sqoop_param
+--connect 
+jdbc:mysql://localhost/hive
+--username
+hadoop
+--password
+hadoop
+
+
+--Import table data to HDFS (O/P file will be by default delimited text)
+hadoop fs -rmr /user/training/Employee
+
+sqoop-import --options-file /root/dvs/sqoop_param --table Employee -m 1
+
+If there is no primary key in the table, then we need to specify no:mappers as 1 i.e., sequential import of data. we can explicitly specify no:of mappers for parallel import.
+If there is no primary key in the table & if we need parallel import then, use split-by "some column name" & can specify any numbers of mappers. Those many part-m-0000
+0001 files will be generated.
+By default if there is primary key in a table or using split-by, it uses 4 mappers. We can see 4 mappers output in HDFS.
+
+split-by id =select max(id),min(ud) boundary query
+
+sqoop-import --options-file /root/dvs/sqoop_param --table Employee --split-by EDept
+
+--Import table data to HDFS (Import only specific columns)
+hadoop fs -rmr /user/training/Employee
+sqoop-import --options-file /root/dvs/sqoop_param --table Employee -m 1 --columns "ENo,ESal"
+
+--Import table data to HDFS (Tab separated file format)
+hadoop fs -rmr /user/training/Employee
+sqoop-import --options-file /root/dvs/sqoop_param --fields-terminated-by '\t' --table Employee -m 1
+
+--Import table data to HDFS (Save to target directory)
+hadoop fs -rmr /user/training/Employee
+sqoop-import --options-file /root/dvs/sqoop_param --table Employee -m 1 --target-dir /user/Employee
+
+--Import table data to HDFS (Where condition)
+hadoop fs -rmr /user/Employee
+hadoop fs -rmr /user/training/Employee
+sqoop-import --options-file /root/dvs/sqoop_param --table Employee -m 1  --where "ESal > 50000"
+
+--Import table data to HDFS (Where condition)
+hadoop fs -rmr /user/training/Employee
+sqoop-import --options-file /root/dvs/sqoop_param --table Employee --split-by EDept
+
+--Import table data to Hive (Create table & load data)
+sqoop-import --options-file /root/dvs/sqoop_param --table Employee -m 1 --hive-import --create-hive-table
+
+--Import table data to Hive (table already exists, Only load data)
+sqoop-import --options-file /root/dvs/sqoop_param --table Employee -m 1 --hive-import --hive-table emp_hive
+
+
+Arguements:
+
+--create-hive-table				Fail if the target hive table exists
+--hive-import	 				Import tables into Hive 
+--hive-overwrite				Overwrite existing data in the Hive table.
+--hive-table <table-name>			Sets the table name to use when importing to Hive.
+--hive-database <database-name>			Sets the database name to use when importing to Hive.
+
+--import-all-tables: 
+--For the import-all-tables tool to be useful, the following conditions must be met:
+--Each table must have a single-column primary key.
+--You must intend to import all columns of each table.
+--You must not intend to use non-default splitting column, nor impose any conditions via a WHERE clause.
+sqoop import-all-tables --connect jdbc:mysql://localhost/dvs1 --username root --password cloudera --create-hive-table --hive-import --hive-database dvs1 -m 1
+
+This tool imports a set of tables from an RDBMS to HDFS. Data from each table is stored in a separate directory in HDFS.
+
+***** incremental data load to HDFS with last last value 
+sqoop-import --options-file /root/dvs/conn_file --table orders --check-column order_id --incremental append --last-value 100;
+
+***** incremental data load to hive table with last last value 
+sqoop import --options-file /root/dvs/sqoop_param --table orders1 --incremental append --check-column order_id --last-value 104 --hive-database dvs_db --hive-import --hive-table orders1;
+
+***** incremental data load to hive table with last modified date
+sqoop-import --options-file /root/dvs/conn_file --table orders --check-column order_date --incremental lastmodified --last-value '2014-01-25' --target-dir dvs_hdfs/abc
+
+For the import-all-tables tool to be useful, the following conditions must be met:
+Each table must have a single-column primary key.
+You must intend to import all columns of each table.
+You must not intend to use non-default splitting column, nor impose any conditions via a WHERE clause.
+
+***** Export data to MySQL table from hadoop(hive)
+sqoop-export --options-file conn_file --table order_hive --export-dir /user/root/orders
+
+Export Failure Cases:
+Exports may fail for a number of reasons:
+Loss of connectivity from the Hadoop cluster to the database (either due to hardware fault, or server software crashes)
+Attempting to INSERT a row which violates a consistency constraint (for example, inserting a duplicate primary key value)
+Attempting to parse records using incorrect delimiters
+Capacity issues (such as insufficient RAM or disk space)
+
+
+***** codegen generates the .java, .class & .jar file for the sqoop job executed.
+sqoop codegen --connect jdbc:mysql://localhost/retail_db --username root --password cloudera --table ordr;
+
+***** eval prints the output of the query on the screen
+sqoop eval --connect jdbc:mysql://localhost/retail_db --username root --password cloudera --query "select * from emp where deptno=20";
+
+******************* Writing a sqoop Job ******************
+sqoop job --create myjob -- import --connect jdbc:mysql://localhost/dvs_db --username root --password cloudera --table orders --hive-import --hive-database dvs_db;
+
+sqoop job -list;
+
+sqoop job --exec myjob;
+
+sqoop job -delete myjob;

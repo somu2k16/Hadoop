@@ -1,0 +1,54 @@
+sqoop import --connect jdbc:mysql://localhost/mysql \
+--username root \
+--password hadoop \
+--query 'select * from mysql.vinod2 where $CONDITIONS' \
+--target-dir '/user/hive/vinod2.txt' \
+-m 1 
+
+sqoop import --connect jdbc:mysql://localhost/hive 
+--username root 
+--password hadoop 
+--query 'select * from hive.SDS where $CONDITIONS' 
+--target-dir '/user/hive/ganga1.txt' 
+-m 1
+
+
+sqoop import --connect jdbc:mysql//localhost/mysql \
+--username root \
+--root hadoop \
+--query 'select * from mysql.vinod where $conditions' \
+--target-dir 'user/hive/vinod2' \
+-m 1
+
+sqoop-list-databases --connect jdbc:mysql://localhost/ \
+--username hadoop \
+--password hadoop	
+
+sqoop-list-tables --connect jdbc:mysql://localhost/mysql \
+--username root \
+--password hadoop
+
+sqoop_param
+--connect jdbc:mysql://localhost/hive
+--username hadoop
+--password hadoop
+
+sqoop --options-file option --query 'select * from mysql.vinod where $CONDITIONS ' --target-dir '/user/hive/vinu' -m 1
+
+hadoop fs -put -f hdfs.txt /user/hive/
+
+import
+--connect
+jdbc:mysql//localhost/mysql
+--username
+root
+--password
+hadoop
+
+
+load data local inpath '/root/emp.txt' into table 
+
+create external table egt4 (name string,age int) row format delimited fields terminated by ',' lines terminated by '\n' 
+stored as rcfile'
+location '/user/ram4'; 
+;
